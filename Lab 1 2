@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <conio.h>
+
+double f(double x) {
+    return 9.0 * x * x * x + 1000.0;
+}
+
+int main() {
+    unsigned int variant;
+    double x1, x2, delta;
+    unsigned int points;
+
+    do {
+        printf("Choose input mode:\n");
+        printf("1. Enter X1, X2 and Number of points (points)\n");
+        printf("2. Enter X1, X2 and Step (delta)\n");
+        printf("Enter variant (1 or 2): ");
+        if (scanf("%u", &variant) != 1) {
+            while (getchar() != '\n');
+            variant = 0;
+        }
+        if (variant != 1 && variant != 2) {
+            printf("\nInvalid variant! Please enter 1 or 2.\n\n");
+        }
+    } while (variant != 1 && variant != 2);
+
+    printf("\nEnter X1 (start): ");
+    scanf("%lf", &x1);
+    printf("Enter X2 (end): ");
+    scanf("%lf", &x2);
+
+    if (variant == 1) {
+        do {
+            printf("Enter number of points (N >= 2): ");
+            scanf("%u", &points);
+            if (points < 2) {
+                printf("Number of points must be at least 2!\n");
+            }
+        } while (points < 2);
+        delta = (x2 - x1) / (points - 1);
+    } else {
+        do {
+            printf("Enter step (delta > 0): ");
+            scanf("%lf", &delta);
+            if (delta <= 0) {
+                printf("Step must be greater than 0!\n");
+            }
+        } while (delta <= 0);
+        points = (unsigned int)((x2 - x1) / delta) + 1;
+    }
+
+    system("cls");
+    printf("=== Initial Data ===\n");
+    printf("X1 = %.4lf, X2 = %.4lf, delta = %.4lf, points = %u\n\n", x1, x2, delta, points);
+
+    printf("+-----+-------------------+--------------------+\n");
+    printf("|  N  |         X         |        F(X)        |\n");
+    printf("+-----+-------------------+--------------------+\n");
+
+    double x_curr = x1;
+    double f_curr = f(x_curr);
+    double x_prev = x_curr;
+    double f_prev = f_curr;
+
+    double sign_change_x1[100];
+    double sign_change_x2[100];
+    int sign_change_count = 0;
+
+    int lines_on_screen = 0;
+    const int MAX_LINES = 10;
+
+    for (unsigned int i = 1; i <= points; i++) {
+        f_curr = f(x_curr);
+
+        if (i > 1 && (f_prev * f_curr < 0)) {
+            sign_change_x1[sign_change_count] = x_prev;
+            sign_change_x2[sign_change_count] = x_curr;
+            sign_change_count++;
+        }
+
+        printf("|%5u|%19.4lf|%20.4lf|\n", i, x_curr, f_curr);
+        lines_on_screen++;
+
+        // Пауза при заповненні екрана
+        if (lines_on_screen == MAX_LINES && i < points) {
+            printf("+-----+-------------------+--------------------+\n");
+            printf("Press Any Key to Continue...");
+            getch();
+            printf("\r                                       \r");
+            lines_on_screen = 0;
+        }
+
+        f_prev = f_curr;
+        x_prev = x_curr;
+        x_curr += delta;
+    }
+
+    printf("+-----+-------------------+--------------------+\n");
+    printf("\n=== Sign Change Intervals ===\n");
+    if (sign_change_count == 0) {
+        printf("No sign changes found in the given range.\n");
+    } else {
+        for (int k = 0; k < sign_change_count; k++) {
+            printf("Interval %d: [%.4lf ; %.4lf]\n", k + 1, sign_change_x1[k], sign_change_x2[k]);
+        }
+    }
+
+    return 0;
+}
